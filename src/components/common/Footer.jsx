@@ -57,7 +57,6 @@ export default function Footer() {
             <ul className="space-y-3.5 text-sm">
               <li><a href="https://github.com/jishanprodhan12" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">About Us</a></li>
               <li><a href="#" className="hover:text-primary transition-colors">Careers</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Blog</a></li>
               <li><a href="#" className="hover:text-primary transition-colors">Terms of Service</a></li>
               <li><a href="#" className="hover:text-primary transition-colors">Privacy Policy</a></li>
             </ul>
