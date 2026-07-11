@@ -42,8 +42,18 @@ export default function Operators() {
               </div>
 
               {/* Logo graphic */}
-              <div className="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-xl font-black text-slate-700 tracking-wider shadow-inner group-hover:bg-primary group-hover:text-white transition-all duration-300">
-                {op.logo}
+              <div className="w-16 h-16 rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 shadow-inner">
+                {op.image ? (
+                  <img
+                    src={op.image}
+                    alt={`${op.name} logo`}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-xl font-black text-slate-700 tracking-wider group-hover:text-white transition-all duration-300 bg-slate-50">
+                    {op.logo}
+                  </div>
+                )}
               </div>
 
               {/* Info text */}

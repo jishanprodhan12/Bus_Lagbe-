@@ -1,4 +1,11 @@
 import React, { createContext, useState, useEffect, useRef } from 'react';
+import chattogramImage from '../assets/chattogram.jfif';
+import coxsBazarImage from "../assets/Cox's Bazar.jpg";
+import sylhetImage from '../assets/sylhet.jfif';
+import rajshahiImage from '../assets/Rajshahi.jfif';
+import khulnaImage from '../assets/khulna.jpg';
+import rangpurImage from '../assets/rangpur.jpg';
+import gaibandhaImage from '../assets/gaibandha.jpg';
 
 export const BookingContext = createContext();
 
@@ -8,27 +15,27 @@ export const LOCATIONS = [
 ];
 
 export const OPERATORS = [
-  { id: 'green-line', name: 'Green Line', logo: 'GL', rating: 4.8, type: 'Premium' },
-  { id: 'hanif', name: 'Hanif Enterprise', logo: 'HE', rating: 4.5, type: 'Classic' },
-  { id: 'shyamoli', name: 'Shyamoli NR', logo: 'SN', rating: 4.6, type: 'Classic' },
-  { id: 'ena', name: 'ENA Transport', logo: 'EN', rating: 4.3, type: 'Express' },
-  { id: 'sohag', name: 'Sohag Paribahan', logo: 'SP', rating: 4.7, type: 'Premium' },
-  { id: 'nabil', name: 'Nabil Paribahan', logo: 'NP', rating: 4.4, type: 'Classic' },
-  { id: 'desh-travels', name: 'Desh Travels', logo: 'DT', rating: 4.7, type: 'Premium' },
-  { id: 'saintmartin', name: 'Saintmartin Travels', logo: 'SM', rating: 4.5, type: 'Premium' },
-  { id: 'royal-coach', name: 'Royal Coach', logo: 'RC', rating: 4.4, type: 'Premium' },
-  { id: 'tr-travels', name: 'TR Travels', logo: 'TR', rating: 4.5, type: 'Classic' },
-  { id: 'orin-travels', name: 'Orin Travels', logo: 'OT', rating: 4.6, type: 'Classic' }
+  { id: 'green-line', name: 'Green Line', logo: 'GL', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRUwG96duq7hUx2QA0ZdFnqSS1At3r8gpCk5SD9Izz_e40qMkEMvBCawlM&s=10', rating: 4.8, type: 'Premium' },
+  { id: 'hanif', name: 'Hanif Enterprise', logo: 'HE', image: 'https://ncdn.ntvbd.com/sites/default/files/styles/big_3/public/images/2021/12/28/hanif-enterprise.jpg', rating: 4.5, type: 'Classic' },
+  { id: 'shyamoli', name: 'Shyamoli NR', logo: 'SN', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlGf_xXEVSwxr2JmAwdhgFvNbrb0QVuO9ELiVstaQnaGyKMPl5WzJusPY&s=10', rating: 4.6, type: 'Classic' },
+  { id: 'ena', name: 'ENA Transport', logo: 'EN', image: 'https://enatransport.com.bd/assets/images/logoIcon/ena-logo.jpg', rating: 4.3, type: 'Express' },
+  { id: 'sohag', name: 'Sohag Paribahan', logo: 'SP', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSRFr1kO3V8gkY7RfEABh3xL6u_F6_d5iCdqVn4H3jMOlkN6auKAnyi-wM&s=10', rating: 4.7, type: 'Premium' },
+  { id: 'nabil', name: 'Nabil Paribahan', logo: 'NP', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSe_yb_iwCiDvyFoPTPg4N-wtIaZZXSR3RtrpvLFCKA-2TgVgRguji08LSX&s=10', rating: 4.4, type: 'Classic' },
+  { id: 'desh-travels', name: 'Desh Travels', logo: 'DT', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRTrHUjuapSVxr-j8KCV0wWKPTFkiW7JDzVbuqwNL-yR4PYMHc-MPrE73se&s=10', rating: 4.7, type: 'Premium' },
+  { id: 'saintmartin', name: 'Saintmartin Travels', logo: 'SM', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqNEg0cWQQut_FctE78GobV0Dybe_Ky25aNjCXH5d3MPsURWJ8LF7OrcRe&s=10', rating: 4.5, type: 'Premium' },
+  { id: 'royal-coach', name: 'Royal Coach', logo: 'RC', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRaXBO2bKyyniD58HfZodmimHV45rVOTPCj4IxcZaPvLz080j-GgbGhVCC-&s=10', rating: 4.4, type: 'Premium' },
+  { id: 'tr-travels', name: 'TR Travels', logo: 'TR', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3CTJOfZ51UX3jpIjbFb0AGJ1Fwh8E5wPMijkwte5J9Jt0W5xmqFI62zjv&s=10', rating: 4.5, type: 'Classic' },
+  { id: 'orin-travels', name: 'Orin Travels', logo: 'OT', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRUgnivyLXLEQdO4EbQwABqQQjtDLFY4G9UZeo-SQ1pRpD4lDy9C8AR8tIj&s=10', rating: 4.6, type: 'Classic' }
 ];
 
 export const POPULAR_ROUTES = [
-  { id: 1, from: 'Dhaka', to: 'Chattogram', price: 800, duration: '6-7 Hours', image: 'https://images.unsplash.com/photo-1547191783-94d5f8f6d8b1?auto=format&fit=crop&w=600&q=80' },
-  { id: 2, from: 'Dhaka', to: 'Cox\'s Bazar', price: 1200, duration: '10-12 Hours', image: 'https://images.unsplash.com/photo-1589308078059-be1415eab4c3?auto=format&fit=crop&w=600&q=80' },
-  { id: 3, from: 'Dhaka', to: 'Sylhet', price: 700, duration: '5-6 Hours', image: 'https://images.unsplash.com/photo-1590001155093-a3c66ab0c3ff?auto=format&fit=crop&w=600&q=80' },
-  { id: 4, from: 'Dhaka', to: 'Rajshahi', price: 900, duration: '6-7 Hours', image: 'https://images.unsplash.com/photo-1608958416805-4f40f0c05763?auto=format&fit=crop&w=600&q=80' },
-  { id: 5, from: 'Dhaka', to: 'Khulna', price: 950, duration: '7-8 Hours', image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=600&q=80' },
-  { id: 6, from: 'Dhaka', to: 'Rangpur', price: 1100, duration: '8-9 Hours', image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80' },
-  { id: 7, from: 'Dhaka', to: 'Gaibandha', price: 850, duration: '7-8 Hours', image: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=600&q=80' }
+  { id: 1, from: 'Dhaka', to: 'Chattogram', price: 800, duration: '6-7 Hours', image: chattogramImage },
+  { id: 2, from: 'Dhaka', to: 'Cox\'s Bazar', price: 1200, duration: '10-12 Hours', image: coxsBazarImage },
+  { id: 3, from: 'Dhaka', to: 'Sylhet', price: 700, duration: '5-6 Hours', image: sylhetImage },
+  { id: 4, from: 'Dhaka', to: 'Rajshahi', price: 900, duration: '6-7 Hours', image: rajshahiImage },
+  { id: 5, from: 'Dhaka', to: 'Khulna', price: 950, duration: '7-8 Hours', image: khulnaImage },
+  { id: 6, from: 'Dhaka', to: 'Rangpur', price: 1100, duration: '8-9 Hours', image: rangpurImage },
+  { id: 7, from: 'Dhaka', to: 'Gaibandha', price: 850, duration: '7-8 Hours', image: gaibandhaImage }
 ];
 
 export const OFFERS = [
@@ -90,6 +97,7 @@ const generateMockBuses = () => {
               id: busId++,
               operatorId: op.id,
               operatorName: op.name,
+              operatorImage: op.image,
               rating: op.rating,
               from: fromLoc,
               to: toLoc,

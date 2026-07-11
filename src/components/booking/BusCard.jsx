@@ -26,8 +26,12 @@ export default function BusCard({ bus, onSelectSeats }) {
         {/* Left Column: Operator & Image */}
         <div className="flex flex-col md:flex-row gap-5 lg:w-[35%]">
           {/* Logo Graphic */}
-          <div className="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-100 shrink-0 flex items-center justify-center text-lg font-black text-slate-700 tracking-wider shadow-inner">
-            {bus.operatorName.split(' ').map(n => n[0]).join('')}
+          <div className="w-16 h-16 rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 shrink-0 flex items-center justify-center text-lg font-black text-slate-700 tracking-wider shadow-inner">
+            {bus.operatorImage ? (
+              <img src={bus.operatorImage} alt={`${bus.operatorName} logo`} className="w-full h-full object-cover" />
+            ) : (
+              <span>{bus.operatorName.split(' ').map(n => n[0]).join('')}</span>
+            )}
           </div>
           
           <div className="flex flex-col justify-center">
