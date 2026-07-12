@@ -2,6 +2,7 @@ import React, { useContext, useRef } from 'react';
 import { BookingContext, POPULAR_ROUTES } from '../../context/BookingContext';
 import { FaChevronLeft, FaChevronRight, FaClock } from 'react-icons/fa';
 import { motion } from 'framer-motion';
+import placeholderImg from '../../assets/logo.png';
 
 export default function RouteCarousel() {
   const { handleSearch } = useContext(BookingContext);
@@ -65,13 +66,14 @@ export default function RouteCarousel() {
               key={route.id}
               whileHover={{ y: -6, transition: { duration: 0.2 } }}
               onClick={() => handleRouteClick(route.from, route.to)}
-              className="flex-shrink-0 w-80 bg-slate-50 rounded-3xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 snap-start cursor-pointer group"
+              className="flex-shrink-0 w-72 sm:w-80 bg-slate-50 rounded-3xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 snap-start cursor-pointer group"
             >
               {/* Image Banner */}
               <div className="h-44 w-full overflow-hidden relative">
                 <img 
                   src={route.image} 
                   alt={`${route.from} to ${route.to}`}
+                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = placeholderImg; }}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
                 <div className="absolute top-4 right-4 bg-slate-900/70 backdrop-blur-md text-white font-bold text-xs py-1.5 px-3 rounded-full flex items-center gap-1.5">

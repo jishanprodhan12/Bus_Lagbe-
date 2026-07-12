@@ -1,8 +1,8 @@
 import React, { createContext, useState, useEffect, useRef } from 'react';
-import chattogramImage from '../assets/chattogram.jfif';
+import chattogramImage from '../assets/chattogram.jpg';
 import coxsBazarImage from "../assets/Cox's Bazar.jpg";
-import sylhetImage from '../assets/sylhet.jfif';
-import rajshahiImage from '../assets/Rajshahi.jfif';
+import sylhetImage from '../assets/sylhet.jpg';
+import rajshahiImage from '../assets/Rajshahi.jpg';
 import khulnaImage from '../assets/khulna.jpg';
 import rangpurImage from '../assets/rangpur.jpg';
 import gaibandhaImage from '../assets/gaibandha.jpg';
@@ -217,6 +217,31 @@ export const BookingProvider = ({ children }) => {
         { id: 2, title: 'Payment confirmed', message: 'Your last booking is ready for travel.', unread: false }
       ]);
     }
+
+    // Try to fetch bookings from server and merge with local cache
+    (async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:4000'}/bookings`);
+        if (res.ok) {
+          const json = await res.json();
+          if (json && Array.isArray(json.data)) {
+            setBookingsList(prev => {
+              // merge server bookings with local ones, preferring server
+              const server = json.data;
+              const merged = [
+                ...server,
+                ...prev.filter(p => !server.some(s => s.bookingId === p.bookingId))
+              ];
+              localStorage.setItem('buslagbe_bookings', JSON.stringify(merged));
+              return merged;
+            });
+          }
+        }
+      } catch (err) {
+        // Non-fatal: keep local bookings
+        console.error('Failed fetching bookings from server:', err);
+      }
+    })();
   }, []);
 
   useEffect(() => {
@@ -328,13 +353,27 @@ export const BookingProvider = ({ children }) => {
     showToast('You have been signed out.', 'info');
   };
 
-  // Save bookings to localStorage
-  const saveBooking = (newBooking) => {
+  // Save bookings to localStorage and MongoDB
+  const saveBooking = async (newBooking) => {
     setBookingsList(prev => {
       const updated = [newBooking, ...prev];
       localStorage.setItem('buslagbe_bookings', JSON.stringify(updated));
       return updated;
     });
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:4000'}/bookings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newBooking)
+      });
+
+      if (!response.ok) {
+        console.error('Failed to save booking to server');
+      }
+    } catch (error) {
+      console.error('Error saving booking to server:', error);
+    }
   };
 
   const handleSearch = (from, to, date, passengers) => {

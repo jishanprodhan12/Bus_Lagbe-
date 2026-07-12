@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "server": "cd server && npm start",
+    "deploy": "npx surge ./dist"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.2",
