@@ -155,10 +155,45 @@ export const BookingProvider = ({ children }) => {
   const [toast, setToast] = useState(null);
   const [favorites, setFavorites] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [routeCatalog, setRouteCatalog] = useState(() => {
+    if (typeof window === 'undefined') return POPULAR_ROUTES.map((route) => ({ ...route, price: Number(route.price) }));
+    const saved = localStorage.getItem('buslagbe_routes');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (error) {
+        console.error('Failed loading routes:', error);
+      }
+    }
+    return POPULAR_ROUTES.map((route) => ({ ...route, price: Number(route.price) }));
+  });
+  const [offerCatalog, setOfferCatalog] = useState(() => {
+    if (typeof window === 'undefined') return OFFERS;
+    const saved = localStorage.getItem('buslagbe_offers');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (error) {
+        console.error('Failed loading offers:', error);
+      }
+    }
+    return OFFERS;
+  });
 
   // Authentication State
   const [user, setUser] = useState(null);
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState(() => {
+    if (typeof window === 'undefined') return [];
+    const savedUsers = localStorage.getItem('buslagbe_users');
+    if (savedUsers) {
+      try {
+        return JSON.parse(savedUsers);
+      } catch (error) {
+        console.error('Failed loading saved users:', error);
+      }
+    }
+    return [];
+  });
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authTab, setAuthTab] = useState('login');
   const [isAuthDeferred, setIsAuthDeferred] = useState(false);
@@ -191,6 +226,10 @@ export const BookingProvider = ({ children }) => {
       } catch (e) {
         console.error("Failed loading saved users:", e);
       }
+    } else {
+      const adminSeed = [{ name: 'Admin User', email: 'admin@buslagbe.com', phone: '01700000000', password: 'admin123', role: 'admin', isLoggedIn: false }];
+      setUsers(adminSeed);
+      localStorage.setItem('buslagbe_users', JSON.stringify(adminSeed));
     }
 
     const savedFavorites = localStorage.getItem('buslagbe_favorites');
@@ -335,6 +374,7 @@ export const BookingProvider = ({ children }) => {
       email: emailVal,
       phone: phoneVal,
       password: passwordVal,
+      role: 'traveler',
       isLoggedIn: true
     };
 
@@ -499,7 +539,14 @@ export const BookingProvider = ({ children }) => {
         setPaymentInfo,
         activeBooking,
         bookingsList,
+        setBookingsList,
         user,
+        users,
+        setUsers,
+        routeCatalog,
+        setRouteCatalog,
+        offerCatalog,
+        setOfferCatalog,
         loginUser,
         registerUser,
         logoutUser,

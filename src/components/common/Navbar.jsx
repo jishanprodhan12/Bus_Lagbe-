@@ -123,16 +123,23 @@ export default function Navbar() {
           <div className="hidden lg:flex items-center space-x-4">
             {/* Lang Dropdown */}
             <div className="dropdown dropdown-end">
-              <label tabIndex={0} className="btn btn-ghost btn-sm rounded-lg flex items-center text-slate-700 font-semibold gap-2">
-                <FaGlobe className="text-slate-500" />
-                <span>EN</span>
-                <FaChevronDown className="text-[10px]" />
-              </label>
+              <div className="h-20 w-20 rounded-xl flex items-center justify-center cursor-pointer transition-colors">
+                <img src={logo} alt="" />
+              </div>
               <ul tabIndex={0} className="dropdown-content z-1 menu p-2 shadow-lg bg-white rounded-xl w-32 border border-slate-100">
                 <li><button className="active:bg-primary font-medium text-slate-700">English</button></li>
                 <li><button className="active:bg-primary font-medium text-slate-700">বাংলা</button></li>
               </ul>
             </div>
+
+            {user?.role === 'admin' && (
+              <button
+                onClick={() => handleNavClick('admin')}
+                className="btn btn-outline btn-primary hidden lg:inline-flex text-primary font-semibold rounded-xl border-primary/30 hover:bg-primary/5"
+              >
+                Admin Panel
+              </button>
+            )}
 
             {/* User Access or Avatar */}
             {user ? (
@@ -213,22 +220,32 @@ export default function Navbar() {
 
               <div className="flex flex-col gap-2.5 px-4 pt-2">
                 {user ? (
-                  <div className="text-left bg-slate-50 p-3 rounded-xl border border-slate-200/50 space-y-2">
-                    <span className="text-[10px] text-slate-400 font-bold block uppercase">LOGGED IN</span>
-                    <span className="text-slate-800 font-bold text-sm block">{user.name}</span>
-                    <button 
-                      onClick={() => handleNavClick('dashboard')} 
-                      className="btn btn-primary btn-sm text-white w-full rounded-lg"
-                    >
-                      Dashboard
-                    </button>
-                    <button 
-                      onClick={logoutUser} 
-                      className="btn btn-outline btn-error btn-sm w-full rounded-lg"
-                    >
-                      Logout
-                    </button>
-                  </div>
+                  <>
+                    {user.role === 'admin' && (
+                      <button
+                        onClick={() => handleNavClick('admin')}
+                        className="btn btn-primary btn-sm w-full rounded-xl"
+                      >
+                        Admin Panel
+                      </button>
+                    )}
+                    <div className="text-left bg-slate-50 p-3 rounded-xl border border-slate-200/50 space-y-2">
+                      <span className="text-[10px] text-slate-400 font-bold block uppercase">LOGGED IN</span>
+                      <span className="text-slate-800 font-bold text-sm block">{user.name}</span>
+                      <button 
+                        onClick={() => handleNavClick('dashboard')} 
+                        className="btn btn-primary btn-sm text-white w-full rounded-lg"
+                      >
+                        Dashboard
+                      </button>
+                      <button 
+                        onClick={logoutUser} 
+                        className="btn btn-outline btn-error btn-sm w-full rounded-lg"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  </>
                 ) : (
                   <>
                     <button 

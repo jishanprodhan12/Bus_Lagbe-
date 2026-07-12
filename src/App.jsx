@@ -12,6 +12,7 @@ import PassengerForm from './components/booking/PassengerForm';
 import BookingSummary from './components/booking/BookingSummary';
 import PrintableTicket from './components/booking/PrintableTicket';
 import DashboardLayout from './components/dashboard/DashboardLayout';
+import AdminPanel from './components/dashboard/AdminPanel';
 import SeatSelectionView from './components/booking/SeatSelectionView';
 import ToastHost from './components/common/ToastHost';
 import InfoPage from './components/common/InfoPage';
@@ -41,6 +42,8 @@ function MainAppContent() {
         return <PrintableTicket booking={selectedPastBooking} onBackHome={() => setCurrentView('dashboard')} />;
       case 'dashboard':
         return <DashboardLayout onViewTicket={handleViewPastTicket} />;
+      case 'admin':
+        return <AdminPanel />;
       case 'routes':
         return <InfoPage title="Popular Routes" subtitle="Explore premium intercity routes across Bangladesh with flexible departures and modern coaches." items={[{ title: 'Dhaka → Chattogram', description: 'Premium overnight and daytime service with reserved seating.', meta: '6-7 hrs' }, { title: 'Dhaka → Cox\'s Bazar', description: 'Comfort-first long-haul travel for weekends and holiday trips.', meta: '10-12 hrs' }, { title: 'Dhaka → Sylhet', description: 'Fast, reliable travel for business and leisure.', meta: '5-6 hrs' }]} type="routes" ctaLabel="Search Bus" onCta={() => setCurrentView('home')} />;
       case 'offers':

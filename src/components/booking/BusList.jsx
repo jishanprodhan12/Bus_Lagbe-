@@ -128,7 +128,7 @@ export default function BusList() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
         {/* Sidebar Filters */}
-        <div className="lg:col-span-3 bg-white rounded-3xl border border-slate-200/60 p-6 shadow-sm sticky top-24">
+        <div className="lg:col-span-3 bg-white rounded-3xl border border-slate-200/60 p-6 shadow-sm lg:sticky top-24">
           <div className="flex justify-between items-center pb-4 border-b border-slate-100 mb-6">
             <h3 className="font-extrabold text-slate-800 text-base flex items-center gap-2">
               <FaFilter className="text-primary text-sm" />

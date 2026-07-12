@@ -3,7 +3,7 @@ import { BookingContext } from '../../context/BookingContext';
 import { FaTicketAlt, FaWallet, FaHourglassHalf, FaWindowClose, FaSearch, FaPrint, FaTrashAlt, FaChevronRight } from 'react-icons/fa';
 
 export default function DashboardLayout({ onViewTicket }) {
-  const { bookingsList, setFilteredBuses, setCurrentView, resetFlow, cancelBooking } = useContext(BookingContext);
+  const { bookingsList, setFilteredBuses, setCurrentView, resetFlow, cancelBooking, user } = useContext(BookingContext);
 
   const [activeTab, setActiveTab] = useState('bookings'); // 'bookings', 'analytics'
   const [searchTerm, setSearchTerm] = useState('');
@@ -56,12 +56,19 @@ export default function DashboardLayout({ onViewTicket }) {
           <p className="text-slate-500 text-sm mt-1">Manage your tickets, view expense metrics, and request cancellations.</p>
         </div>
 
-        <button 
-          onClick={resetFlow}
-          className="btn btn-primary text-white font-bold rounded-xl hover:bg-primary-hover shadow-lg shadow-primary/20 hover:shadow-primary/30 border-none"
-        >
-          Book a New Ticket
-        </button>
+        <div className="flex flex-wrap gap-3">
+          {Boolean(user?.role === 'admin' || user?.email?.includes('admin')) && (
+            <button onClick={() => setCurrentView('admin')} className="btn btn-outline btn-primary rounded-xl border-primary/30 text-primary font-bold">
+              Open Admin Panel
+            </button>
+          )}
+          <button 
+            onClick={resetFlow}
+            className="btn btn-primary text-white font-bold rounded-xl hover:bg-primary-hover shadow-lg shadow-primary/20 hover:shadow-primary/30 border-none"
+          >
+            Book a New Ticket
+          </button>
+        </div>
       </div>
 
       {/* Stats Cards Row */}
