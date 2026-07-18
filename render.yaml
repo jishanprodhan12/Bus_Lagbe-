@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: buslagbe-server
+    runtime: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: MONGODB_URI
+        value: mongodb+srv://buslagbe:CepNiFkFfcup8UD6@cluster0.8datsd9.mongodb.net/buslagbe?appName=Cluster0
+      - key: PORT
+        value: 4000
+    plan: free
