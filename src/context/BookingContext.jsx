@@ -9,7 +9,9 @@ import gaibandhaImage from '../assets/gaibandha.jpg';
 
 export const BookingContext = createContext();
 
-// Mock Data
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
+
+// Static reference data
 export const LOCATIONS = [
   'Dhaka', 'Chattogram', 'Cox\'s Bazar', 'Sylhet', 'Rajshahi', 'Khulna', 'Rangpur', 'Barishal', 'Jashore', 'Sreemangal', 'Gaibandha'
 ];
@@ -70,18 +72,15 @@ const generateMockBuses = () => {
   LOCATIONS.forEach(fromLoc => {
     LOCATIONS.forEach(toLoc => {
       if (fromLoc !== toLoc) {
-        // Base fare based on some pseudo distance
         const baseFare = 500 + (Math.abs(fromLoc.length - toLoc.length) * 100);
         
         OPERATORS.forEach((op, index) => {
-          // generate 2-3 departures per operator per route to keep list healthy but not overwhelming
           const departures = departureTimes.slice(index % 3, (index % 3) + 2);
           
           departures.forEach(time => {
             const coach = coachTypes[(index + busId) % coachTypes.length];
             const fare = Math.round(baseFare * coach.fareFactor);
             
-            // Randomly pre-book some seats
             const bookedSeats = [];
             const seatRows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
             seatRows.forEach(row => {
@@ -104,7 +103,7 @@ const generateMockBuses = () => {
               departure: time.dep,
               arrival: time.arr,
               timeLabel: time.label,
-              duration: '7 Hours', // Simple standardized dur
+              duration: '7 Hours',
               coachType: coach.type,
               amenities: coach.amenities,
               fare: fare,
@@ -153,132 +152,118 @@ export const BookingProvider = ({ children }) => {
   const [activeBooking, setActiveBooking] = useState(null);
   const [bookingsList, setBookingsList] = useState([]);
   const [toast, setToast] = useState(null);
-  const [favorites, setFavorites] = useState([]);
-  const [notifications, setNotifications] = useState([]);
-  const [routeCatalog, setRouteCatalog] = useState(() => {
-    if (typeof window === 'undefined') return POPULAR_ROUTES.map((route) => ({ ...route, price: Number(route.price) }));
-    const saved = localStorage.getItem('buslagbe_routes');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (error) {
-        console.error('Failed loading routes:', error);
-      }
-    }
-    return POPULAR_ROUTES.map((route) => ({ ...route, price: Number(route.price) }));
-  });
-  const [offerCatalog, setOfferCatalog] = useState(() => {
-    if (typeof window === 'undefined') return OFFERS;
-    const saved = localStorage.getItem('buslagbe_offers');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (error) {
-        console.error('Failed loading offers:', error);
-      }
-    }
-    return OFFERS;
-  });
+  const [favorites, setFavorites] = useState([
+    { id: 1, name: 'Dhaka → Chattogram', note: 'Premium route' }
+  ]);
+  const [notifications, setNotifications] = useState([
+    { id: 1, title: 'Trip reminder', message: 'Please arrive 30 minutes before departure.', unread: true },
+    { id: 2, title: 'Payment confirmed', message: 'Your last booking is ready for travel.', unread: false }
+  ]);
+  const [routeCatalog, setRouteCatalog] = useState([]);
+  const [offerCatalog, setOfferCatalog] = useState([]);
 
   // Authentication State
   const [user, setUser] = useState(null);
-  const [users, setUsers] = useState(() => {
-    if (typeof window === 'undefined') return [];
-    const savedUsers = localStorage.getItem('buslagbe_users');
-    if (savedUsers) {
-      try {
-        return JSON.parse(savedUsers);
-      } catch (error) {
-        console.error('Failed loading saved users:', error);
-      }
-    }
-    return [];
-  });
+  const [users, setUsers] = useState([]);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authTab, setAuthTab] = useState('login');
   const [isAuthDeferred, setIsAuthDeferred] = useState(false);
   const pendingActionRef = useRef(null);
 
-  // Load bookings, users, and user from localStorage on mount
-  useEffect(() => {
-    const savedBookings = localStorage.getItem('buslagbe_bookings');
-    if (savedBookings) {
-      try {
-        setBookingsList(JSON.parse(savedBookings));
-      } catch (e) {
-        console.error("Failed loading local bookings:", e);
+  const fetchUsersFromServer = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/users`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json && Array.isArray(json.data)) {
+          setUsers(json.data);
+        }
       }
+    } catch (err) {
+      console.error('Failed to fetch users from server:', err);
     }
+  };
 
+  const saveUserToServer = async (updatedUser) => {
+    try {
+      const res = await fetch(`${API_BASE}/users/${updatedUser.email}/role`, {
+        method: 'PUT'
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setUsers(prev => prev.map(u => u.email === updatedUser.email ? { ...json.data, isLoggedIn: u.isLoggedIn } : u));
+      } else {
+        console.error('Failed to update user role on server:', json.message);
+      }
+    } catch (err) {
+      console.error('Error updating user role on server:', err);
+    }
+  };
+
+  // On mount: restore session user from localStorage, then load all data from MongoDB
+  useEffect(() => {
+    // Restore logged-in user from localStorage (session persistence only)
     const savedUser = localStorage.getItem('buslagbe_user') || sessionStorage.getItem('buslagbe_user');
+    let currentUserObj = null;
     if (savedUser) {
       try {
-        setUser(JSON.parse(savedUser));
+        currentUserObj = JSON.parse(savedUser);
+        setUser(currentUserObj);
       } catch (e) {
-        console.error("Failed loading local user:", e);
+        console.error('Failed loading session user:', e);
       }
     }
 
-    const savedUsers = localStorage.getItem('buslagbe_users');
-    if (savedUsers) {
-      try {
-        setUsers(JSON.parse(savedUsers));
-      } catch (e) {
-        console.error("Failed loading saved users:", e);
-      }
-    } else {
-      const adminSeed = [{ name: 'Admin User', email: 'admin@buslagbe.com', phone: '01700000000', password: 'admin123', role: 'admin', isLoggedIn: false }];
-      setUsers(adminSeed);
-      localStorage.setItem('buslagbe_users', JSON.stringify(adminSeed));
+    if (currentUserObj && currentUserObj.role === 'admin') {
+      fetchUsersFromServer();
     }
 
-    const savedFavorites = localStorage.getItem('buslagbe_favorites');
-    if (savedFavorites) {
-      try {
-        setFavorites(JSON.parse(savedFavorites));
-      } catch (e) {
-        console.error("Failed loading favorites:", e);
-      }
-    } else {
-      setFavorites([{ id: 1, name: 'Dhaka → Chattogram', note: 'Premium route' }]);
-    }
-
-    const savedNotifications = localStorage.getItem('buslagbe_notifications');
-    if (savedNotifications) {
-      try {
-        setNotifications(JSON.parse(savedNotifications));
-      } catch (e) {
-        console.error("Failed loading notifications:", e);
-      }
-    } else {
-      setNotifications([
-        { id: 1, title: 'Trip reminder', message: 'Please arrive 30 minutes before departure.', unread: true },
-        { id: 2, title: 'Payment confirmed', message: 'Your last booking is ready for travel.', unread: false }
-      ]);
-    }
-
-    // Try to fetch bookings from server and merge with local cache
+    // Fetch bookings from MongoDB
     (async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:4000'}/bookings`);
+        const res = await fetch(`${API_BASE}/bookings`);
         if (res.ok) {
           const json = await res.json();
           if (json && Array.isArray(json.data)) {
-            setBookingsList(prev => {
-              // merge server bookings with local ones, preferring server
-              const server = json.data;
-              const merged = [
-                ...server,
-                ...prev.filter(p => !server.some(s => s.bookingId === p.bookingId))
-              ];
-              localStorage.setItem('buslagbe_bookings', JSON.stringify(merged));
-              return merged;
-            });
+            setBookingsList(json.data);
           }
         }
       } catch (err) {
-        // Non-fatal: keep local bookings
         console.error('Failed fetching bookings from server:', err);
+      }
+    })();
+
+    // Fetch routes from MongoDB
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/routes`);
+        if (res.ok) {
+          const json = await res.json();
+          if (json && Array.isArray(json.data)) {
+            setRouteCatalog(json.data);
+          }
+        }
+      } catch (err) {
+        console.error('Failed fetching routes from server:', err);
+        // Fallback to static data if server unreachable
+        setRouteCatalog(POPULAR_ROUTES.map((route) => ({ ...route, price: Number(route.price) })));
+      }
+    })();
+
+    // Fetch offers from MongoDB
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/offers`);
+        if (res.ok) {
+          const json = await res.json();
+          if (json && Array.isArray(json.data)) {
+            setOfferCatalog(json.data);
+          }
+        }
+      } catch (err) {
+        console.error('Failed fetching offers from server:', err);
+        // Fallback to static data if server unreachable
+        setOfferCatalog(OFFERS);
       }
     })();
   }, []);
@@ -293,11 +278,12 @@ export const BookingProvider = ({ children }) => {
     setToast({ message, type });
   };
 
+  // No longer saves to localStorage — users come from MongoDB only
   const saveUsers = (updatedUsers) => {
     setUsers(updatedUsers);
-    localStorage.setItem('buslagbe_users', JSON.stringify(updatedUsers));
   };
 
+  // Only the session user object is persisted in localStorage
   const persistUser = (loggedInUser, remember = true) => {
     setUser(loggedInUser);
     const storage = remember ? localStorage : sessionStorage;
@@ -325,65 +311,61 @@ export const BookingProvider = ({ children }) => {
     setIsAuthDeferred(false);
   };
 
-  const loginUser = (emailOrPhone, password, remember = true) => {
-    const isEmail = emailOrPhone.includes('@');
-    const lookupKey = isEmail ? 'email' : 'phone';
-    const foundUser = users.find((u) => u[lookupKey] === emailOrPhone);
+  const loginUser = async (emailOrPhone, password, remember = true) => {
+    try {
+      const res = await fetch(`${API_BASE}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emailOrPhone, password })
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        const loggedInUser = { ...json.data, isLoggedIn: true };
+        persistUser(loggedInUser, remember);
 
-    if (!foundUser) {
-      if (password === 'SOCIAL') {
-        const socialUser = {
-          name: 'Google User',
-          email: isEmail ? emailOrPhone : 'google.user@gmail.com',
-          phone: isEmail ? '01712345678' : emailOrPhone,
-          password: 'SOCIAL',
-          isLoggedIn: true
-        };
-        saveUsers([socialUser, ...users]);
-        persistUser(socialUser, remember);
+        if (loggedInUser.role === 'admin') {
+          fetchUsersFromServer();
+        }
+
         executeDeferredAction();
         closeAuthModal();
-        showToast('Signed in successfully with Google.', 'success');
+        showToast('Welcome back! You are now signed in.', 'success');
         return true;
+      } else {
+        showToast(json.message || 'Login failed', 'error');
+        return false;
       }
+    } catch (err) {
+      console.error('Login error:', err);
+      showToast('Network error during login', 'error');
       return false;
     }
-
-    if (password === 'SOCIAL' || foundUser.password === password) {
-      const loggedInUser = { ...foundUser, isLoggedIn: true };
-      persistUser(loggedInUser, remember);
-      executeDeferredAction();
-      closeAuthModal();
-      showToast('Welcome back! You are now signed in.', 'success');
-      return true;
-    }
-
-    return false;
   };
 
-  const registerUser = (nameVal, emailVal, phoneVal, passwordVal, remember = true) => {
-    const emailExists = users.some((u) => u.email === emailVal);
-    const phoneExists = users.some((u) => u.phone === phoneVal);
-
-    if (emailExists || phoneExists) {
+  const registerUser = async (nameVal, emailVal, phoneVal, passwordVal, remember = true) => {
+    try {
+      const res = await fetch(`${API_BASE}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: nameVal, email: emailVal, phone: phoneVal, password: passwordVal })
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        const registeredUser = { ...json.data, isLoggedIn: true };
+        persistUser(registeredUser, remember);
+        executeDeferredAction();
+        closeAuthModal();
+        showToast('Account created successfully. Your dashboard is ready.', 'success');
+        return true;
+      } else {
+        showToast(json.message || 'Registration failed', 'error');
+        return false;
+      }
+    } catch (err) {
+      console.error('Registration error:', err);
+      showToast('Network error during registration', 'error');
       return false;
     }
-
-    const registeredUser = {
-      name: nameVal,
-      email: emailVal,
-      phone: phoneVal,
-      password: passwordVal,
-      role: 'traveler',
-      isLoggedIn: true
-    };
-
-    saveUsers([registeredUser, ...users]);
-    persistUser(registeredUser, remember);
-    executeDeferredAction();
-    closeAuthModal();
-    showToast('Account created successfully. Your dashboard is ready.', 'success');
-    return true;
   };
 
   const logoutUser = () => {
@@ -393,16 +375,12 @@ export const BookingProvider = ({ children }) => {
     showToast('You have been signed out.', 'info');
   };
 
-  // Save bookings to localStorage and MongoDB
+  // Save booking to MongoDB only (no localStorage)
   const saveBooking = async (newBooking) => {
-    setBookingsList(prev => {
-      const updated = [newBooking, ...prev];
-      localStorage.setItem('buslagbe_bookings', JSON.stringify(updated));
-      return updated;
-    });
+    setBookingsList(prev => [newBooking, ...prev]);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:4000'}/bookings`, {
+      const response = await fetch(`${API_BASE}/bookings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newBooking)
@@ -413,6 +391,67 @@ export const BookingProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Error saving booking to server:', error);
+    }
+  };
+
+  const saveRouteToServer = async (route) => {
+    try {
+      const res = await fetch(`${API_BASE}/routes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(route)
+      });
+      if (!res.ok) console.error('Failed to save route on server');
+    } catch (err) {
+      console.error('Error saving route to server:', err);
+    }
+  };
+
+  const removeRouteFromServer = async (id) => {
+    try {
+      const res = await fetch(`${API_BASE}/routes/${id}`, {
+        method: 'DELETE'
+      });
+      if (!res.ok) console.error('Failed to remove route from server');
+    } catch (err) {
+      console.error('Error removing route from server:', err);
+    }
+  };
+
+  const saveOfferToServer = async (offer) => {
+    try {
+      const res = await fetch(`${API_BASE}/offers`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(offer)
+      });
+      if (!res.ok) console.error('Failed to save offer on server');
+    } catch (err) {
+      console.error('Error saving offer to server:', err);
+    }
+  };
+
+  const removeOfferFromServer = async (code) => {
+    try {
+      const res = await fetch(`${API_BASE}/offers/${code}`, {
+        method: 'DELETE'
+      });
+      if (!res.ok) console.error('Failed to remove offer from server');
+    } catch (err) {
+      console.error('Error removing offer from server:', err);
+    }
+  };
+
+  const updateBookingOnServer = async (bookingId, updateData) => {
+    try {
+      const res = await fetch(`${API_BASE}/bookings/${bookingId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateData)
+      });
+      if (!res.ok) console.error('Failed to update booking on server');
+    } catch (err) {
+      console.error('Error updating booking on server:', err);
     }
   };
 
@@ -442,7 +481,7 @@ export const BookingProvider = ({ children }) => {
       setSelectedSeats(prev => prev.filter(s => s !== seatId));
     } else {
       if (selectedSeats.length >= 4) {
-        alert("You can select up to 4 seats maximum.");
+        alert('You can select up to 4 seats maximum.');
         return;
       }
       setSelectedSeats(prev => [...prev, seatId]);
@@ -505,7 +544,7 @@ export const BookingProvider = ({ children }) => {
     setCurrentView('home');
   };
 
-  const cancelBooking = (bookingId) => {
+  const cancelBooking = async (bookingId) => {
     const updated = bookingsList.map(b => {
       if (b.bookingId === bookingId) {
         return { ...b, status: 'Cancelled' };
@@ -513,7 +552,7 @@ export const BookingProvider = ({ children }) => {
       return b;
     });
     setBookingsList(updated);
-    localStorage.setItem('buslagbe_bookings', JSON.stringify(updated));
+    await updateBookingOnServer(bookingId, { status: 'Cancelled' });
   };
 
   return (
@@ -551,6 +590,13 @@ export const BookingProvider = ({ children }) => {
         registerUser,
         logoutUser,
         cancelBooking,
+        fetchUsersFromServer,
+        saveUserToServer,
+        saveRouteToServer,
+        removeRouteFromServer,
+        saveOfferToServer,
+        removeOfferFromServer,
+        updateBookingOnServer,
         handleSearch,
         handleSelectBus,
         toggleSeatSelection,

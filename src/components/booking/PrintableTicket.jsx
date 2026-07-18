@@ -1,13 +1,41 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { FaPrint, FaDownload, FaCheckCircle, FaBus, FaCalendarAlt, FaClock, FaQrcode } from 'react-icons/fa';
+import { createQrDataUrl, generateTicketQrPayload } from '../../utils/qr';
 
 export default function PrintableTicket({ booking, onBackHome }) {
   const printRef = useRef();
+  const [qrDataUrl, setQrDataUrl] = useState('');
+  const [qrError, setQrError] = useState('');
 
   const handlePrint = () => {
-    // Simply trigger the browser print dialog
     window.print();
   };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const renderQr = async () => {
+      try {
+        const payload = generateTicketQrPayload(booking);
+        const dataUrl = await createQrDataUrl(payload, { width: 220 });
+        if (isMounted) {
+          setQrDataUrl(dataUrl);
+          setQrError('');
+        }
+      } catch (error) {
+        if (isMounted) {
+          setQrError('QR generation failed');
+          console.error('QR generation error:', error);
+        }
+      }
+    };
+
+    renderQr();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [booking]);
 
   // Custom CSS for printing is loaded directly inline or in index.css
   return (
@@ -101,14 +129,14 @@ export default function PrintableTicket({ booking, onBackHome }) {
               </div>
               <div>
                 <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Journey Date</span>
-                <span className="text-xs font-bold text-slate-700 block flex items-center gap-1.5 mt-0.5">
+                <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5 mt-0.5">
                   <FaCalendarAlt className="text-slate-400 text-[10px]" />
                   <span>{booking.journeyDate}</span>
                 </span>
               </div>
               <div>
                 <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Departure Time</span>
-                <span className="text-xs font-bold text-slate-700 block flex items-center gap-1.5 mt-0.5">
+                <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5 mt-0.5">
                   <FaClock className="text-slate-400 text-[10px]" />
                   <span>{booking.bus.departure}</span>
                 </span>
@@ -151,45 +179,18 @@ export default function PrintableTicket({ booking, onBackHome }) {
           {/* Right section: QR code & Pricing (Separated by vertical line) */}
           <div className="md:col-span-4 border-t md:border-t-0 md:border-l border-slate-200 pt-6 md:pt-0 md:pl-8 flex flex-col justify-between items-center text-center">
             
-            {/* SVG security QR Code */}
+            {/* Real QR Code */}
             <div className="flex flex-col items-center">
               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-3">Security Ticket QR</span>
               
-              <div className="p-3 bg-white border border-slate-200 rounded-2xl shadow-sm">
-                {/* SVG mock QR representation */}
-                <svg className="w-32 h-32 text-slate-800" viewBox="0 0 100 100" fill="currentColor">
-                  {/* QR Corners */}
-                  <rect x="0" y="0" width="25" height="25" />
-                  <rect x="5" y="5" width="15" height="15" fill="white" />
-                  <rect x="8" y="8" width="9" height="9" />
-
-                  <rect x="75" y="0" width="25" height="25" />
-                  <rect x="80" y="5" width="15" height="15" fill="white" />
-                  <rect x="83" y="8" width="9" height="9" />
-
-                  <rect x="0" y="75" width="25" height="25" />
-                  <rect x="5" y="80" width="15" height="15" fill="white" />
-                  <rect x="8" y="83" width="9" height="9" />
-
-                  {/* QR Data Dots representation */}
-                  <rect x="35" y="5" width="10" height="5" />
-                  <rect x="55" y="10" width="5" height="15" />
-                  <rect x="40" y="20" width="15" height="5" />
-                  <rect x="5" y="35" width="20" height="5" />
-                  <rect x="15" y="45" width="10" height="10" />
-                  
-                  <rect x="35" y="35" width="15" height="15" />
-                  <rect x="35" y="55" width="5" height="20" />
-                  <rect x="45" y="60" width="15" height="10" />
-                  <rect x="60" y="35" width="15" height="5" />
-                  <rect x="65" y="45" width="10" height="20" />
-
-                  <rect x="75" y="75" width="10" height="10" />
-                  <rect x="90" y="85" width="10" height="15" />
-                  <rect x="75" y="90" width="15" height="5" />
-                  <rect x="90" y="70" width="5" height="10" />
-                  <rect x="0" y="60" width="10" height="5" />
-                </svg>
+              <div className="p-3 bg-white border border-slate-200 rounded-2xl shadow-sm min-h-44 flex items-center justify-center">
+                {qrDataUrl ? (
+                  <img src={qrDataUrl} alt="Booking QR code" className="w-32 h-32" />
+                ) : (
+                  <div className="w-32 h-32 flex items-center justify-center text-slate-400 text-[11px] font-semibold text-center">
+                    {qrError || 'Generating QR...'}
+                  </div>
+                )}
               </div>
               <span className="text-[9px] text-slate-400 font-bold uppercase mt-2">Trx: {booking.transactionId}</span>
             </div>

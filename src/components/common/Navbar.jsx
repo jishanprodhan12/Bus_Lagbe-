@@ -29,31 +29,29 @@ export default function Navbar() {
     setMobileMenuOpen(false);
   };
 
-  const handleLoginSubmit = (e) => {
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
     if (!emailOrPhone || !loginPassword) {
       alert("Please enter both email/phone and password.");
       return;
     }
-    const success = loginUser(emailOrPhone, loginPassword, rememberMe);
+    const success = await loginUser(emailOrPhone, loginPassword, rememberMe);
     if (success) {
       setEmailOrPhone('');
       setLoginPassword('');
       if (!isAuthDeferred) {
         setCurrentView('dashboard');
       }
-    } else {
-      alert("Login failed. Please check your credentials or register first.");
     }
   };
 
-  const handleRegisterSubmit = (e) => {
+  const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     if (!regName || !regEmail || !regPhone || !regPassword) {
       alert("Please fill in all registration fields.");
       return;
     }
-    const success = registerUser(regName, regEmail, regPhone, regPassword, rememberMe);
+    const success = await registerUser(regName, regEmail, regPhone, regPassword, rememberMe);
     if (success) {
       setRegName('');
       setRegEmail('');
@@ -62,8 +60,6 @@ export default function Navbar() {
       if (!isAuthDeferred) {
         setCurrentView('dashboard');
       }
-    } else {
-      alert("Registration failed. The email or phone number may already be in use.");
     }
   };
 

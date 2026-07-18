@@ -21,8 +21,10 @@ export default function AdminPanel() {
     saveUserToServer,
     fetchRoutesFromServer,
     saveRouteToServer,
+    removeRouteFromServer,
     fetchOffersFromServer,
     saveOfferToServer,
+    removeOfferFromServer,
     user,
   } = useContext(BookingContext);
 
@@ -67,7 +69,6 @@ export default function AdminPanel() {
   const updateBookingStatus = async (bookingId, status) => {
     const updated = bookingsList.map((booking) => booking.bookingId === bookingId ? { ...booking, status } : booking);
     setBookingsList(updated);
-    localStorage.setItem('buslagbe_bookings', JSON.stringify(updated));
     showToast(`Booking ${bookingId} marked as ${status}.`, 'success');
 
     if (updateBookingOnServer) {
@@ -82,7 +83,6 @@ export default function AdminPanel() {
   const toggleUserRole = async (email) => {
     const updated = users.map((person) => person.email === email ? { ...person, role: person.role === 'admin' ? 'traveler' : 'admin' } : person);
     setUsers(updated);
-    localStorage.setItem('buslagbe_users', JSON.stringify(updated));
     showToast('User role updated.', 'success');
 
     const changed = updated.find((person) => person.email === email);
@@ -98,15 +98,27 @@ export default function AdminPanel() {
   const removeRoute = async (id) => {
     const updated = routeCatalog.filter((route) => route.id !== id);
     setRouteCatalog(updated);
-    localStorage.setItem('buslagbe_routes', JSON.stringify(updated));
     showToast('Route removed from the catalog.', 'info');
+    if (removeRouteFromServer) {
+      try {
+        await removeRouteFromServer(id);
+      } catch (err) {
+        console.error('Failed to remove route from server:', err);
+      }
+    }
   };
 
   const removeOffer = async (code) => {
     const updated = offerCatalog.filter((offer) => offer.code !== code);
     setOfferCatalog(updated);
-    localStorage.setItem('buslagbe_offers', JSON.stringify(updated));
     showToast('Offer removed from the catalog.', 'info');
+    if (removeOfferFromServer) {
+      try {
+        await removeOfferFromServer(code);
+      } catch (err) {
+        console.error('Failed to remove offer from server:', err);
+      }
+    }
   };
 
   const handleAddRoute = async (event) => {
@@ -118,7 +130,6 @@ export default function AdminPanel() {
     const routeItem = { id: Date.now(), ...newRoute, price: Number(newRoute.price) };
     const updated = [routeItem, ...routeCatalog];
     setRouteCatalog(updated);
-    localStorage.setItem('buslagbe_routes', JSON.stringify(updated));
     showToast('New route added to the management list.', 'success');
     if (saveRouteToServer) {
       try {
@@ -138,7 +149,6 @@ export default function AdminPanel() {
     const offerItem = { ...newOffer, code: newOffer.code.toUpperCase() };
     const updated = [offerItem, ...offerCatalog];
     setOfferCatalog(updated);
-    localStorage.setItem('buslagbe_offers', JSON.stringify(updated));
     setNewOffer({ code: '', discount: '', description: '', expiry: '' });
     showToast('Offer published to the customer view.', 'success');
     if (saveOfferToServer) {

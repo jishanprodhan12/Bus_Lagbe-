@@ -1,11 +1,29 @@
 import React, { useContext, useRef } from 'react';
-import { BookingContext, POPULAR_ROUTES } from '../../context/BookingContext';
+import { BookingContext } from '../../context/BookingContext';
 import { FaChevronLeft, FaChevronRight, FaClock } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import placeholderImg from '../../assets/logo.png';
+import chattogramImage from '../../assets/chattogram.jpg';
+import coxsBazarImage from "../../assets/Cox's Bazar.jpg";
+import sylhetImage from '../../assets/sylhet.jpg';
+import rajshahiImage from '../../assets/Rajshahi.jpg';
+import khulnaImage from '../../assets/khulna.jpg';
+import rangpurImage from '../../assets/rangpur.jpg';
+import gaibandhaImage from '../../assets/gaibandha.jpg';
+
+const getRouteImage = (route) => {
+  if (route.id === 1) return chattogramImage;
+  if (route.id === 2) return coxsBazarImage;
+  if (route.id === 3) return sylhetImage;
+  if (route.id === 4) return rajshahiImage;
+  if (route.id === 5) return khulnaImage;
+  if (route.id === 6) return rangpurImage;
+  if (route.id === 7) return gaibandhaImage;
+  return route.image;
+};
 
 export default function RouteCarousel() {
-  const { handleSearch } = useContext(BookingContext);
+  const { handleSearch, routeCatalog } = useContext(BookingContext);
   const scrollRef = useRef(null);
 
   const scroll = (direction) => {
@@ -61,9 +79,9 @@ export default function RouteCarousel() {
           ref={scrollRef}
           className="flex overflow-x-auto gap-6 pb-6 no-scrollbar snap-x snap-mandatory scroll-smooth"
         >
-          {POPULAR_ROUTES.map((route) => (
+          {routeCatalog.map((route) => (
             <motion.div
-              key={route.id}
+              key={route.id || route._id}
               whileHover={{ y: -6, transition: { duration: 0.2 } }}
               onClick={() => handleRouteClick(route.from, route.to)}
               className="flex-shrink-0 w-72 sm:w-80 bg-slate-50 rounded-3xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 snap-start cursor-pointer group"
@@ -71,7 +89,7 @@ export default function RouteCarousel() {
               {/* Image Banner */}
               <div className="h-44 w-full overflow-hidden relative">
                 <img 
-                  src={route.image} 
+                  src={getRouteImage(route)} 
                   alt={`${route.from} to ${route.to}`}
                   onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = placeholderImg; }}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"

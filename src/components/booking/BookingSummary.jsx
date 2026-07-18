@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { BookingContext, OFFERS } from '../../context/BookingContext';
+import { BookingContext } from '../../context/BookingContext';
 import { FaTag, FaCheckCircle, FaExclamationCircle, FaLock, FaArrowLeft, FaChevronRight } from 'react-icons/fa';
 import PaymentModal from './PaymentModal';
 
@@ -10,7 +10,8 @@ export default function BookingSummary() {
     boardingPoint, 
     droppingPoint, 
     passengerDetails,
-    setCurrentView 
+    setCurrentView,
+    offerCatalog
   } = useContext(BookingContext);
 
   const [promoCode, setPromoCode] = useState('');
@@ -31,25 +32,37 @@ export default function BookingSummary() {
       return;
     }
 
-    const matchedOffer = OFFERS.find(o => o.code === code);
+    const matchedOffer = offerCatalog.find(o => o.code === code);
     if (!matchedOffer) {
       setPromoError('Invalid coupon code. Try BLFIRST.');
       setPromoApplied(null);
       return;
     }
 
-    let discount = 0;
-    if (code === 'BLFIRST') {
-      discount = Math.min(150, Math.round(baseFare * 0.1));
-    } else if (code === 'COXSPECIAL') {
-      if (selectedBus.to.toLowerCase() === 'cox\'s bazar') {
-        discount = 200;
-      } else {
-        setPromoError('COXSPECIAL is only applicable for Cox\'s Bazar bookings.');
+    // Special checks for COXSPECIAL
+    if (code === 'COXSPECIAL') {
+      if (selectedBus.to.toLowerCase() !== 'cox\'s bazar' && selectedBus.to.toLowerCase() !== "cox's bazar") {
+        setPromoError('COXSPECIAL is only applicable for Cox\'s Bazar route bookings.');
         return;
       }
-    } else if (code === 'EIDTRIP') {
-      discount = Math.round(baseFare * 0.15);
+    }
+
+    let discount = 0;
+    const discountStr = matchedOffer.discount;
+    if (discountStr.includes('%')) {
+      const pct = parseFloat(discountStr.replace('%', ''));
+      if (!isNaN(pct)) {
+        discount = Math.round(baseFare * (pct / 100));
+        // If it's BLFIRST, apply maximum cap of 150
+        if (code === 'BLFIRST') {
+          discount = Math.min(150, discount);
+        }
+      }
+    } else {
+      const match = discountStr.match(/\d+/);
+      if (match) {
+        discount = parseInt(match[0], 10);
+      }
     }
 
     setPromoApplied({

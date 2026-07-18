@@ -8,4 +8,9 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  resolve: {
+    alias: {
+      qrcode: 'qrcode/lib/browser.js'
+    }
+  }
 })

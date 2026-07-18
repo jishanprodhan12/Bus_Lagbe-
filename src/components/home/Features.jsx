@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { OFFERS } from '../../context/BookingContext';
+import React, { useState, useContext } from 'react';
+import { BookingContext } from '../../context/BookingContext';
 import { FaTicketAlt, FaShieldAlt, FaMapMarkedAlt, FaHeadset, FaStar, FaChevronDown, FaMobileAlt, FaApple, FaPlay } from 'react-icons/fa';
 
 export default function Features() {
   const [activeFaq, setActiveFaq] = useState(null);
+  const { offerCatalog } = useContext(BookingContext);
 
   const stats = [
     { value: '1.2M+', label: 'Tickets Sold', desc: 'Across Bangladesh' },
@@ -84,7 +85,7 @@ export default function Features() {
             <h2 className="text-3xl font-extrabold text-slate-800 tracking-tight mt-3">Featured Promo Offers</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {OFFERS.map((offer, i) => (
+            {offerCatalog.map((offer, i) => (
               <div key={i} className="border-2 border-dashed border-slate-200 rounded-3xl p-6 bg-slate-50 hover:bg-white hover:border-primary/50 transition-all flex flex-col justify-between relative group">
                 <div className="absolute top-4 right-4 bg-primary/10 text-primary text-xs font-bold px-2.5 py-1 rounded-full">
                   Coupon
