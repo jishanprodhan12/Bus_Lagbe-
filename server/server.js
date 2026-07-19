@@ -20,6 +20,18 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Serve static files from Vite build
+const staticPath = path.join(__dirname, '..', 'dist');
+app.use(express.static(staticPath));
+
+// SPA fallback: return index.html for any non‑API route
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api') || req.path === '/health') {
+    return next();
+  }
+  res.sendFile(path.join(staticPath, 'index.html'));
+});
+
 const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/buslagbe';
 
 const userSchema = new mongoose.Schema({

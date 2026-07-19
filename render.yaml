@@ -3,7 +3,7 @@ services:
     name: buslagbe-server
     runtime: node
     rootDir: server
-    buildCommand: npm install
+    buildCommand: npm install && npm run build
     startCommand: node server.js
     envVars:
       - key: MONGODB_URI
